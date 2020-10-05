@@ -14,7 +14,7 @@
         <div class="header">
             <h1>Нестационарные торговые объекты в Тюмени</h1>
         </div>
-        <div class="map-wrap" style="width:900px; height:500px">
+        <div class="map-wrap" >
 
         </div>
         <div class="table-wrap" id="template-table">
