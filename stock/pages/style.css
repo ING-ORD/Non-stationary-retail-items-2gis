@@ -1,0 +1,64 @@
+
+body{
+    margin-top:10px;
+}
+
+#map {
+    width:900px;
+    height:500px;
+}
+
+.container{
+    margin: auto;
+    max-width: 900px;
+}
+
+.header{
+    text-align: center;
+}
+
+.table-wrap{
+    margin-top: 10px;
+}
+
+table{
+    min-width: 900px;
+    padding: 3px 5px;
+    border-collapse: collapse;
+}
+
+td, th {
+    border: solid 1px;
+    /* border-collapse: collapse; */
+}
+
+th{
+    text-align: center;
+}
+
+th:nth-child(1), td:nth-child(1){
+    text-align: center;
+    width: 5%;
+}
+
+th:nth-child(2){
+    width: auto;
+}
+
+th:nth-child(3), td:nth-child(3){
+    text-align: center;
+    width: 25%;
+}
+
+th:nth-child(4), td:nth-child(4){
+    width: 20%;
+    text-align: center;
+}
+
+.popup.active{
+    /* position: absolute; */
+    /* margin: auto; */
+    background-color: white;
+    border: 1px solid black ;
+    /* border-radius: 5px ; */
+}
