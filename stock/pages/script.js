@@ -139,9 +139,7 @@ function draw_template_popup (context) {
             <span>Имя</span>\
         </div>\
         <div class="field">\
-            <textarea rows="6" cols="45" name="description" id="description_field" >\
-            {{description}}\
-            </textarea>\
+            <textarea rows="6" cols="45" name="description" id="description_field" >{{description}}</textarea>\
             <span>Описание</span>\
         </div>\
         <div class="field">\
