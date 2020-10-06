@@ -10,6 +10,11 @@
     <title>Нестационарные торговые объекты</title>
 </head>
 <body>
+    <div class="wrap-popup">
+        <div class="popup" id="template-popup">
+                
+        </div>
+    </div>
     <div class="container">
         <div class="header">
             <h1>Нестационарные торговые объекты в Тюмени</h1>
@@ -18,9 +23,6 @@
 
         </div>
         <div class="table-wrap" id="template-table">
-            
-        </div>
-        <div class="popup" id="template-popup">
             
         </div>
 

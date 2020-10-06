@@ -1,5 +1,21 @@
+let map;
+let markersMap = [];
+
+response = fetch('http://tyumen/api/points' , {
+    method: "GET",
+    headers:{
+        'Accept':'application/json',
+        'Content-Type':'application/json',
+    },
+}).then(response => response.json())
+.then(data => {
+    let points = cache_data(data);
+    draw_template_table(points);
+    draw_points_on_map(points);
+});
 
 setInterval(() => {
+
     response = fetch('http://tyumen/api/points' , {
         method: "GET",
         headers:{
@@ -8,11 +24,15 @@ setInterval(() => {
         },
     }).then(response => response.json())
     .then(data => {
+        if (data || data.points === []) return;
+        console.log("featch refresh", !data || !data.points, !data)
         let points = cache_data(data);
         draw_template_table(points);
-        draw_points_on_map(points)
+        refresh_map_markers()
     });
-}, 10*1000);
+
+    
+}, 1*1000);
 
 function redraw_template_table () {
     let points = cache_data();
@@ -49,23 +69,31 @@ function draw_template_table (points) {
     buttons.forEach((button, key) => {
         button.onclick = (e)=>{
 
-
             draw_template_popup(points.find((p)=> p.id == e.target.dataset.id ));
 
-            clear_table();
-
-            // console.log(e.target.dataset.id);
         }
     })
 }
 
-function clear_table (){
-    document.getElementById("template-table").innerHTML = "";
+function refresh_map_markers () {
+    for (let marker of markersMap) {
+        marker.removeFrom(map);
+    }
+    markersMap = [];
+
+    for (let point of cache_data()) {
+        let icon = DG.icon({
+            iconUrl: point.img_link,
+            iconSize: [24, 24],
+        });
+
+        let marker = DG.marker([point.x, point.y], {icon}).addTo(map)
+        marker.bindPopup(html_template_popup_2gis(point, marker));
+        markersMap.push(marker);
+    }
 }
 
 function draw_points_on_map (points){
-
-    let map;
 
     let divMap = document.createElement("div");
     divMap.setAttribute("id", "map");
@@ -85,11 +113,12 @@ function draw_points_on_map (points){
                 iconUrl: point.img_link,
                 iconSize: [24, 24],
             });
-            
-            console.log("draw: ", point);
 
-            DG.marker([point.x, point.y], {icon}).addTo(map).bindPopup(html_template_popup_2gis(point));
+            let marker = DG.marker([point.x, point.y], {icon}).addTo(map)
+            marker.bindPopup(html_template_popup_2gis(point, marker));
+            markersMap.push(marker);
         }
+
     });
 
     document.querySelector(".map-wrap").innerHTML = "";
@@ -97,7 +126,7 @@ function draw_points_on_map (points){
 
 }
 
-function html_template_popup_2gis (point){
+function html_template_popup_2gis (point, marker){
 
 
     let template = Handlebars.compile('\
@@ -116,8 +145,8 @@ function html_template_popup_2gis (point){
     answer_html.innerHTML = html;
 
     answer_html.querySelector("button").onclick = function () {
-        clear_table();
         draw_template_popup(point);
+        marker.closePopup();
     }
 
     return answer_html
@@ -127,40 +156,40 @@ function draw_template_popup (context) {
 
     let template_popup = document.getElementById("template-popup");
     template_popup.classList.add("active");
+    document.querySelector(".wrap-popup").classList.add("active");
+
 
     let template = Handlebars.compile('\
     <form id="change-point">\
-        <div class="field">\
-            <input type="text" name="id" disabled id="id_field" value={{id}}>\
-            <span>№</span>\
-        </div>\
-        <div class="field">\
+        <div class="group">\
+            <label>Имя</label>\
             <input type="text" name="name" id="name_field" value={{name}}>\
-            <span>Имя</span>\
         </div>\
-        <div class="field">\
+        <div class="group">\
+            <label>Описание</label>\
             <textarea rows="6" cols="45" name="description" id="description_field" >{{description}}</textarea>\
-            <span>Описание</span>\
         </div>\
-        <div class="field">\
+        <div class="group">\
+            <label>Долгота</label>\
             <input type="text" name="x" id="x_field" value={{x}}>\
-            <span>Долгота</span>\
         </div>\
-        <div class="field">\
+        <div class="group">\
+            <label>Широта</label>\
             <input type="text" name="y" id="y_field" value={{y}}>\
-            <span>Широта</span>\
         </div>\
-        <div class="field-img" >\
+        <div class="group" >\
+            <label>Картинка</label>\
             <select id="img-link_field"  name="img_link">\
                 <option value="https://34kjmn3xy614nqsp3bsgpb13-wpengine.netdna-ssl.com/wp-content/uploads/2018/11/small-business-storefront-icon-RED-BLUE.svg">Павильон</option>\
                 <option value="https://www.svgrepo.com/show/217870/tent.svg">Палатка</option>\
                 <option value="https://www.flaticon.com/svg/static/icons/svg/287/287623.svg">Киоск</option>\
             </select>\
-            <span>Картинка</span>\
         </div>\
     </form>\
+    <div class="actions-group">\
     <button class="save-btn">Сохранить</button>\
     <button class="cancel-btn">Отмена</button>\
+    </div>\
     ');
 
     let html = template(context);
@@ -175,6 +204,8 @@ function draw_template_popup (context) {
         for (input of inputs){
             data[input.name] = input.value;
         }
+
+        data["id"] = context.id;
         
         let textarea = document.querySelector("#change-point textarea")
         data[textarea.name] = textarea.innerHTML;
@@ -189,17 +220,13 @@ function draw_template_popup (context) {
         
         fetch('http://tyumen/api/edit/point' , {
             method: "POST",
-            // headers:{
-            //     'Accept':'application/json',
-            //     "Content-type": "application/form-data; charset=UTF-8",
-            // },
             body: formData,
         }).then(response => response.json())
         .then(data => {
             
             let points = cache_data({"points":[data]});
             draw_template_table(points);
-            draw_points_on_map(points);
+            refresh_map_markers();
             clear_popup();
         });
     };
@@ -215,6 +242,8 @@ function draw_template_popup (context) {
 function clear_popup (){
     let popup = document.getElementById("template-popup");
     popup.classList.remove("active");
+    document.querySelector(".wrap-popup").classList.remove("active");
+
     popup.innerHTML = "";
 }
 

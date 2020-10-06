@@ -112,12 +112,7 @@ else if ($request["method"] == "POST") {
             die;
         } 
 
-        //проверка на существование id и любого поля name, coordinates или img_link
-        // if (issetOrIsset($data, $model_field)) {
-        //     echo "!";
-        // }else {
-        //     echo "?";
-        // }
+        //проверка на существование id и любого поля model_field
         if (!(isset($data["id"]) and issetOrIsset($data, $model_field) ) ) { 
             header('Content-Type: application/json');
             echo json_encode(["error"=>"invalid parameters", "params"=>$data, "GET"=> $_GET,"POST"=> $_POST]); 
